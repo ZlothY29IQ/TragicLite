@@ -494,7 +494,7 @@ public class MenuPatch
         }
         catch (Exception ex)
         {
-            File.WriteAllText(_10000._10001(78), ex.ToString());
+            Debug.Log(ex.Message + " | " + ex.StackTrace);
         }
     }
 
