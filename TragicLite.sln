@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TragicLite", "TragicLite\TragicLite.csproj", "{4502D44F-91AF-48F0-844E-F0E351AA7CCB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4502D44F-91AF-48F0-844E-F0E351AA7CCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4502D44F-91AF-48F0-844E-F0E351AA7CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4502D44F-91AF-48F0-844E-F0E351AA7CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4502D44F-91AF-48F0-844E-F0E351AA7CCB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
