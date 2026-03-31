@@ -1,15 +1,10 @@
-using System.ComponentModel;
 using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
-using Utilla.Attributes;
 
 namespace TragicLite.Patches;
 
-[Description("HauntedModMenu")]
 [BepInPlugin("org.Mangos.gorillatag.modmenupatch", "Mod Menu Patch", "1.0.2")]
-[BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0")]
-[ModdedGamemode]
 public class ModMenuPatch : BaseUnityPlugin
 {
     public static bool modmenupatch = true;
@@ -21,9 +16,15 @@ public class ModMenuPatch : BaseUnityPlugin
     public static ConfigEntry<float> cycleSpeed;
     public static ConfigEntry<float> glowAmount;
 
-    private void OnEnable()
+    private void Start()
     {
         HarmonyPatches.ApplyHarmonyPatches();
+
+        GorillaTagger.OnPlayerSpawned(() =>
+                                      {
+                                          NetworkSystem.Instance.OnJoinedRoomEvent        += RoomJoined;
+                                          NetworkSystem.Instance.OnReturnedToSinglePlayer += RoomLeft;
+                                      });
 
         ConfigFile config = new(Path.Combine(Paths.ConfigPath, _10000._10001(49)), true);
 
@@ -39,13 +40,11 @@ public class ModMenuPatch : BaseUnityPlugin
         HarmonyPatches.RemoveHarmonyPatches();
     }
 
-    [ModdedGamemodeJoin]
     private void RoomJoined()
     {
         modmenupatch = true;
     }
 
-    [ModdedGamemodeLeave]
     private void RoomLeft()
     {
         modmenupatch = true;

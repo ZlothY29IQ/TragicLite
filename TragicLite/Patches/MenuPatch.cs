@@ -299,11 +299,9 @@ public class MenuPatch
     {
         try
         {
-            if (!maxJumpSpeed.HasValue)
-                maxJumpSpeed = GTPlayer.Instance.maxJumpSpeed;
+            maxJumpSpeed ??= GTPlayer.Instance.maxJumpSpeed;
 
-            if (!jumpMultiplier.HasValue)
-                jumpMultiplier = GTPlayer.Instance.jumpMultiplier;
+            jumpMultiplier ??= GTPlayer.Instance.jumpMultiplier;
 
             if (!maxArmLengthInitial.HasValue)
             {
@@ -311,43 +309,34 @@ public class MenuPatch
                 leftHandOffsetInitial  = GTPlayer.Instance.LeftHand.handOffset;
                 rightHandOffsetInitial = GTPlayer.Instance.RightHand.handOffset;
             }
-
-            List<InputDevice> left  = new();
-            List<InputDevice> right = new();
-
-            InputDevices.GetDevicesWithCharacteristics((InputDeviceCharacteristics)324, left);
-            InputDevices.GetDevicesWithCharacteristics((InputDeviceCharacteristics)580, right);
-
-            InputDevice dev;
-
-            dev = left[0];
-            dev.TryGetFeatureValue(CommonUsages.grip,            out BoomGrip);
-            dev.TryGetFeatureValue(CommonUsages.trigger,         out SpawnGrip);
-
-            dev = right[0];
-            dev.TryGetFeatureValue(CommonUsages.primaryButton, out primaryRightDown);
-
+            
             bool gripDown = ControllerInputPoller.instance.leftGrab;
 
-            if (gripDown && menu == null)
+            switch (gripDown)
             {
-                Draw();
-
-                if (reference == null)
+                case true when menu == null:
                 {
-                    reference = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    Object.Destroy(reference.GetComponent<MeshRenderer>());
-                    reference.transform.SetParent(GTPlayer.Instance.RightHand.controllerTransform);
-                    reference.transform.localPosition = new Vector3(0f, -0.1f, 0f);
-                    reference.transform.localScale    = Vector3.one * 0.01f;
+                    Draw();
+
+                    if (reference == null)
+                    {
+                        reference = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        Object.Destroy(reference.GetComponent<MeshRenderer>());
+                        reference.transform.SetParent(GTPlayer.Instance.RightHand.controllerTransform);
+                        reference.transform.localPosition = new Vector3(0f, -0.1f, 0f);
+                        reference.transform.localScale    = Vector3.one * 0.01f;
+                    }
+
+                    break;
                 }
-            }
-            else if (!gripDown && menu != null)
-            {
-                Object.Destroy(menu);
-                menu = null;
-                Object.Destroy(reference);
-                reference = null;
+
+                case false when menu != null:
+                    Object.Destroy(menu);
+                    menu = null;
+                    Object.Destroy(reference);
+                    reference = null;
+
+                    break;
             }
 
             if (gripDown && menu != null)
@@ -624,7 +613,7 @@ public class MenuPatch
 
     public static VRRig FindVRRigForPlayer(Player player)
     {
-        foreach (VRRig rig in GorillaParent.instance.vrrigs)
+        foreach (VRRig rig in VRRigCache.m_activeRigs)
             if (!rig.isOfflineVRRig && rig.GetComponent<PhotonView>().Owner == player)
                 return rig;
 
@@ -649,7 +638,7 @@ public class MenuPatch
         if (rig == null) return;
 
         Vector3 camPos = rig.mainCamera.transform.position;
-        PhotonNetwork.Instantiate(_10000._10001(115), camPos, Quaternion.identity);
+        //PhotonNetwork.Instantiate(_10000._10001(115), camPos, Quaternion.identity);
         undmaster();
     }
 
@@ -1617,8 +1606,7 @@ public class MenuPatch
         label.resizeTextForBestFit = true;
         label.resizeTextMinSize    = 0;
 
-        Object builtin = Resources.GetBuiltinResource(typeof(Font), _10000._10001(272));
-        label.font = (Font)builtin;
+        label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
         RectTransform rect = label.GetComponent<RectTransform>();
         rect.localPosition = new Vector3(0.064f, 0f, 0.111f - offset / 2.55f);
@@ -1679,8 +1667,8 @@ public class MenuPatch
         fpsObj.transform.parent = canvasObj.transform;
 
         Text   fps     = fpsObj.AddComponent<Text>();
-        Object builtin = Resources.GetBuiltinResource(typeof(Font), _10000._10001(279));
-        fps.font                 = (Font)builtin;
+        Font builtinFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        fps.font                 = builtinFont;
         fps.fontSize             = 1;
         fps.fontStyle            = FontStyle.Bold;
         fps.alignment            = TextAnchor.MiddleCenter;
@@ -1721,7 +1709,7 @@ public class MenuPatch
         prevTextObj.transform.parent = canvasObj.transform;
         Text prevText = prevTextObj.AddComponent<Text>();
         prevText.text                 = _10000._10001(305) + previousPage + _10000._10001(307);
-        prevText.font                 = (Font)Resources.GetBuiltinResource(typeof(Font), _10000._10001(309));
+        prevText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         prevText.fontSize             = 1;
         prevText.alignment            = TextAnchor.MiddleCenter;
         prevText.resizeTextForBestFit = true;
@@ -1744,7 +1732,7 @@ public class MenuPatch
         nextTextObj.transform.parent = canvasObj.transform;
         Text nextText = nextTextObj.AddComponent<Text>();
         nextText.text                 = _10000._10001(295) + nextPage + _10000._10001(298);
-        nextText.font                 = (Font)Resources.GetBuiltinResource(typeof(Font), _10000._10001(301));
+        nextText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         nextText.fontSize             = 1;
         nextText.alignment            = TextAnchor.MiddleCenter;
         nextText.resizeTextForBestFit = true;
@@ -1759,12 +1747,12 @@ public class MenuPatch
     {
         int totalPages = (Buttons.Length + pageSize - 1) / pageSize;
 
-        if (relatedText == _10000._10001(316))
+        if (relatedText == "PreviousPage")
         {
             pageNumber--;
             if (pageNumber < 0) pageNumber = 0;
         }
-        else if (relatedText == _10000._10001(318))
+        else if (relatedText == "NextPage")
         {
             pageNumber++;
             if (pageNumber > totalPages - 1) pageNumber = totalPages - 1;
@@ -1787,10 +1775,10 @@ public class MenuPatch
 
     private void Init()
     {
-        MainCamera = GameObject.Find(_10000._10001(329));
+        MainCamera = GorillaTagger.Instance.mainCamera;
 
         HUDObj      = new GameObject();
-        HUDObj.name = _10000._10001(327);
+        HUDObj.name = "Poop";
         HUDObj.AddComponent<Canvas>();
         HUDObj.AddComponent<CanvasScaler>();
         HUDObj.AddComponent<GraphicRaycaster>();
@@ -1805,7 +1793,7 @@ public class MenuPatch
         HUDObj.transform.rotation = Quaternion.Euler(eulerAngles);
 
         HUDObj2                    = new GameObject();
-        HUDObj2.name               = _10000._10001(323);
+        HUDObj2.name               = "but hole";
         HUDObj.transform.parent    = HUDObj2.transform;
         HUDObj2.transform.position = MainCamera.transform.position - new Vector3(0f, 0f, 4.6f);
 
@@ -1905,7 +1893,7 @@ public class MenuPatch
 
     private static void beacons()
     {
-        foreach (VRRig rig in GorillaParent.instance.vrrigs)
+        foreach (VRRig rig in VRRigCache.m_activeRigs)
         {
             if (rig.isMyPlayer || rig.isOfflineVRRig)
                 continue;
@@ -1937,7 +1925,7 @@ public class MenuPatch
 
     private static void tracers()
     {
-        foreach (VRRig rig in GorillaParent.instance.vrrigs)
+        foreach (VRRig rig in VRRigCache.m_activeRigs)
         {
             if (rig.isOfflineVRRig || rig.isMyPlayer)
                 continue;
